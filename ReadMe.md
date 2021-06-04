@@ -22,6 +22,10 @@ The full product is still under constructing and the full product is committed t
 
 ### Structure Overview
 
+![Structure Overview](https://drive.google.com/uc?export=view&id=1P5eH-9PlpX9ouwS5M376NXaSntN7m_RY)
+
+### CICD
+
 - References
 
   [Even the Smallest Side Project Deserves Its K8s Cluster](https://betterprogramming.pub/even-the-smallest-side-project-deserves-its-k8s-cluster-3fc6f8a65e13)
