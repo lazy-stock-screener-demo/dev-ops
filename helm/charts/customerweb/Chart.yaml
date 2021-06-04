@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: "0.0.1"
+description: The customer-web subchart in lazy-stock-screener
+name: customerweb
+version: "0.0.1"
+type: application
+keywords:
+  - Web
+  - Financial Report

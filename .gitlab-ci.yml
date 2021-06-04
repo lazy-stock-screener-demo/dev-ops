@@ -1,0 +1,19 @@
+stages:
+  - build-cicd-img
+  - install-on-cluster
+  - post-release
+
+install_istio:
+  variables:
+    GIT_STRATEGY: none  
+  image: $CI_REGISTRY/lazy-stock-screener/project-orchestration:latest
+  stage: install-on-cluster
+  script:
+    - auto-deploy install_istio
+  only:
+    - master
+  tags:
+    - kubernetes
+
+include:
+  - local: '/gitlab-runner/templates/Auto-Deploy.gitlab-ci.yml'

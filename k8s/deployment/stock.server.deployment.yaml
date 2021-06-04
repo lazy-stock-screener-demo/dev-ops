@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stock-server-configmap
+  # namespace: lazy-stock-screener
+data:
+  HOST_URL: "0.0.0.0:80"
+  TEST_PORT: "4999"
+  WEBSOCKET_PORT: "5001"
+  IDENTITY_DEV_HOST: identity-redis-service
+  IDENTITY_DEV_PORT: "6379"
+  IDENTITY_DEV_DB_NAME: "0"
+  IDENTITY_DEV_USER: admin
+  IDENTITY_DEV_PASSWORD: admin 
+  CUSTOMER_SELF_DEV_DB_NAME: customer-db
+  CUSTOMER_SELF_DEV_USER: postgres
+  CUSTOMER_SELF_DEV_PASSWORD: postgres
+  CUSTOMER_SELF_DEV_HOST: customer-postgre-service
+  CUSTOMER_SELF_DEV_PORT: "5432"
+  CATALOG_DEV_DB_NAME: stock-db
+  CATALOG_DEV_USER: admin
+  CATALOG_DEV_PASSWORD: admin
+  CATALOG_DEV_HOST: stock-mongo-service
+  CATALOG_DEV_PORT: "27017"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stock-server-deployment
+  # namespace: lazy-stock-screener
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lazy-stock-screener
+      component: stock-server
+      tier: golang      
+  template:
+    metadata:
+      labels:
+        app: lazy-stock-screener
+        component: stock-server
+        tier: golang        
+    spec:
+      containers:
+        - name: stock-server
+          image: stock-server
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          envFrom:
+            - configMapRef:
+                name: stock-server-configmap

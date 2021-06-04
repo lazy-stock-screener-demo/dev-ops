@@ -1,0 +1,24 @@
+global:
+  config:
+    namespace: lazy-stock-screener
+
+customerweb:
+  api:
+    stock:
+      ver: "v1"
+      host: "0.0.0.0"
+      port: "5000"
+  enable: true
+  image:
+    pullPolicy: IfNotPresent
+    name: "customer-web:latest" 
+  deployment:
+    autoscaling:
+      minReplicas: 1
+      maxReplicas: 1
+
+stock:
+  enable: false
+  image:
+  deployment:
+

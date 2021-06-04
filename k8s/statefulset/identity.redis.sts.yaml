@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: identity-redis-configmap
+  # namespace: lazy-stock-screener
+data:
+  acl: |
+    user default +@all ~* on >Aa123789~
+    user admin +@all ~* on >admin
+  config: |
+    bind 0.0.0.0
+    protected-mode yes
+    timeout 0
+    port 6379
+    requirepass "redis"
+    appendonly yes
+    appendfsync everysec
+    appendfilename "appendonly.aof"
+    aclfile /usr/local/etc/redis/users.acl
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: identity-redis-sts
+  # namespace: lazy-stock-screener
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lazy-stock-screener
+      component: identity-redis
+      tier: redis  
+  serviceName: "identity-redis"
+  template:
+    metadata:
+      labels:
+        app: lazy-stock-screener
+        component: identity-redis
+        tier: redis  
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: identity-redis
+          image: redis:alpine
+          command: ["redis-server"]
+          args: ["/usr/local/etc/redis/redis.conf"]
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: redis-config-volume
+              mountPath: /usr/local/etc/redis
+            - name: identity-redis-pvc
+              mountPath: /var/lib/redis
+      volumes:
+        - name: redis-config-volume
+          configMap:
+            name: identity-redis-configmap
+            items:
+              - key: config
+                path: redis.conf
+              - key: acl
+                path: users.acl
+  volumeClaimTemplates:
+    - metadata:
+        name: identity-redis-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

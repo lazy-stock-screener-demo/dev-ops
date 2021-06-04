@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Values.name}}-deployment
+  namespace: lazy-stock-screener
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer-web
+  template:
+    metadata:
+      labels:
+        app: customer-web
+    spec:
+      # tolerations:
+      #   - key: "dedicated"
+      #     operator: "Equal"
+      #     value: "microservice"
+      #     effect: "NoSchedule"    
+      containers:
+        - name: customer-web
+          image: {{.Values.image.name}}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "64Mi"
+          envFrom:
+            - configMapRef:
+                name: customer-web-configmap

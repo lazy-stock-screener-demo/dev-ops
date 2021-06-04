@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-configmap-env
+  # namespace: lazy-stock-screener
+data:
+  mongodb.env: |
+    MONGO_INITDB_ROOT_USERNAME=mongodb
+    MONGO_INITDB_ROOT_PASSWORD=mongodb
+    MONGO_INITDB_DATABASE=stock-db
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-configmap
+  # namespace: lazy-stock-screener
+data:
+  init.script: |
+    db.createUser({
+      user: "admin",
+      pwd: "admin",
+      roles: [
+        {
+          role: "readWrite",
+          db: "stock-db",
+        },
+      ],
+    });
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stock-mongo-sts
+  # namespace: lazy-stock-screener
+  labels:
+    app.kubernetes.io/name: stock-mongo-sts
+    app.kubernetes.io/component: stock
+spec:
+  selector:
+    matchLabels:
+      app: lazy-stock-screener
+      component: stock-mongo
+      tier: mongo  
+  serviceName: "stock-mongo"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: lazy-stock-screener
+        component: stock-mongo
+        tier: mongo  
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: stock-mongodb
+          image: mongo
+          imagePullPolicy: Never
+          args:
+            - --bind_ip
+            - 0.0.0.0
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          envFrom:
+            - configMapRef:
+                name: mongo-configmap-env
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-initdb-volume
+              mountPath: /docker-entrypoint-initdb.d
+            - name: stock-mongo-pvc
+              mountPath: /data/db
+      volumes:
+        - name: mongo-initdb-volume
+          configMap:
+            name: mongo-configmap
+            items:
+              - key: init.script
+                path: init.js
+  volumeClaimTemplates:
+    - metadata:
+        name: stock-mongo-pvc
+        # namespace: lazy-stock-screener
+      spec:
+        accessModes: 
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+
+
+

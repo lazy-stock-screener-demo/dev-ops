@@ -1,0 +1,25 @@
+variables:
+  DOCKER_FILE: "./gitlab-runner/auto-deploy/Dockerfile"
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  CONTAINER_SHA_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+build_release:
+  stage: build-cicd-img
+  image: docker:19.03.1
+  services:
+    - docker:19.03.1-dind
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker pull $CONTAINER_RELEASE_IMAGE || true
+    - echo $PWD
+    - >
+      docker build
+      -t $CONTAINER_SHA_IMAGE
+      -f $DOCKER_FILE
+      .
+    - docker push $CONTAINER_SHA_IMAGE
+    - docker tag $CONTAINER_SHA_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
+  tags:
+    - docker

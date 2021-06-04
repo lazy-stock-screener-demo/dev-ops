@@ -1,0 +1,14 @@
+name: customer-web
+
+image:
+  pullPolicy: Never
+  name: "customer-web:latest"
+
+deployment:
+  replicaCount: 1
+  nameOverride: ""
+  containerPort: "8080"
+
+service:
+  type: ClusterIP
+  port: 80
